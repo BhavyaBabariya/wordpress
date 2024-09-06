@@ -235,3 +235,27 @@ function custom_post_field_callback($post) {
     <input type="text" id="custom_post_field" name="custom_post_field" value="<?php echo esc_attr($custom_value); ?>" />
     <?php
 }
+
+function save_custom_post_field($post_id) {
+    // Verify the nonce before saving
+    if (!isset($_POST['custom_post_field_nonce']) || !wp_verify_nonce($_POST['custom_post_field_nonce'], 'save_custom_post_field')) {
+        return;
+    }
+
+    // Check for autosave and permissions
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save the custom field data
+    if (isset($_POST['custom_post_field'])) {
+        $custom_data = sanitize_text_field($_POST['custom_post_field']);
+        update_post_meta($post_id, '_custom_post_field_key', $custom_data);
+    }
+}
+add_action('save_post', 'save_custom_post_field');
+
